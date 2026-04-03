@@ -1,0 +1,128 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #F8F5F7; 
+    color: #333;
+    
+    display: flex;
+    justify-content: center; 
+    align-items: center;    
+    min-height: 100vh;       
+    width: 100%;
+    padding: 20px;
+}
+
+.hero-section {
+    text-align: center;
+    background-color: white;
+    width: 100%;           
+    max-width: 800px;        
+    
+    padding: 60px 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-logo {
+    height: 60px; 
+    margin-bottom: 25px;
+}
+
+.hero-title {
+    color: #1a1a1a;
+    font-weight: 700;
+    
+    font-size: 42px;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 45px;
+    line-height: 1.6;
+    max-width: 650px; 
+    margin-left: auto; 
+    margin-right: auto;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center; 
+    flex-wrap: wrap; 
+}
+
+.btn-outline, .btn-primary {
+    padding: 14px 35px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #B07AA1;
+    border: 2px solid #B07AA1;
+}
+
+.btn-outline:hover {
+    background-color: #F8F5F7;
+    transform: translateY(-2px); 
+}
+
+.btn-primary {
+    background-color: #B07AA1;
+    color: white;
+    border: 2px solid #B07AA1; 
+}
+
+.btn-primary:hover {
+    background-color: #9C688F;
+    border-color: #9C688F;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 40px 20px; 
+    }
+
+    .hero-title {
+        font-size: 32px; 
+    }
+
+    .hero-subtitle {
+        font-size: 16px; 
+    }
+    
+    .hero-logo {
+        height: 50px;
+    }
+}
+
+@media (max-width: 600px) {
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-outline, .btn-primary {
+        width: 100%; 
+    }
+}
