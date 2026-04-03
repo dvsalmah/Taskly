@@ -1,0 +1,211 @@
+/*ini juga hasil vibe codin, ntar taruh sini style yg fix nyaa*/
+
+
+/* =============================================
+   PROFILE.CSS — Khusus halaman profile
+   ============================================= */
+
+   .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 32px;
+    max-width: 680px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.card-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+}
+
+.go-back {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.go-back:hover { color: var(--pink-dark); }
+
+/* ===== PROFILE PREVIEW ===== */
+.profile-preview {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-photo-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-name  { font-weight: 600; font-size: 15px; color: var(--text); }
+.profile-email { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* ===== ALERTS ===== */
+.alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.alert-success { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+.alert-error   { background: #FFEBEE; color: #C62828; border: 1px solid #EF9A9A; }
+
+/* ===== UPLOAD FOTO ===== */
+.upload-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.upload-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: var(--bg);
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.upload-label:hover {
+    border-color: var(--pink);
+    background: var(--pink-light);
+}
+
+.upload-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+/* Sembunyikan input file default, diganti label */
+.upload-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.upload-filename {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ===== FORM GRID ===== */
+.profile-form { margin-top: 8px; }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group.full-width { grid-column: 1 / -1; }
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: var(--pink);
+}
+
+/* ===== BUTTONS ===== */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: opacity 0.2s;
+}
+
+.btn-primary { background: var(--pink-dark); color: var(--white); }
+.btn-primary:hover { opacity: 0.88; }
+
+.btn-outline {
+    background: transparent;
+    color: var(--pink-dark);
+    border: 1.5px solid var(--pink-dark);
+}
+
+.btn-outline:hover { background: var(--pink-light); }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 768px) {
+    .card { padding: 20px 16px; }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full-width { grid-column: 1; }
+}
