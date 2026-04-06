@@ -1,0 +1,8 @@
+# Ignore user data
+pages/data/users.json
+
+# Ignore uploaded files
+uploads/
+
+*.log
+.DS_Store
