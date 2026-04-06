@@ -6,7 +6,7 @@
 }
 
 body {
-    background-color: #F8F5F7; 
+    background-color: #FFA1AD; 
     color: #333;
     
     display: flex;
@@ -77,8 +77,8 @@ body {
 
 .btn-outline {
     background-color: transparent;
-    color: #B07AA1;
-    border: 2px solid #B07AA1;
+    color: #861043;
+    border: 2px solid #861043;
 }
 
 .btn-outline:hover {
@@ -87,14 +87,14 @@ body {
 }
 
 .btn-primary {
-    background-color: #B07AA1;
+    background-color: #861043;
     color: white;
-    border: 2px solid #B07AA1; 
+    border: 2px solid #861043; 
 }
 
 .btn-primary:hover {
-    background-color: #9C688F;
-    border-color: #9C688F;
+    background-color: #861043;
+    border-color: #861043;
     transform: translateY(-2px);
 }
 
