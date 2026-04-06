@@ -1,16 +1,16 @@
-/*ini juga hasil vibe codin, ntar taruh sini style yg fix nyaa*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
-
-/* =============================================
-   PROFILE.CSS — Khusus halaman profile
-   ============================================= */
-
-   .card {
+.card {
     background: var(--white);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding: 28px 32px;
-    max-width: 680px;
+    max-width: 1300px;
 }
 
 .card-header {
@@ -21,7 +21,6 @@
 }
 
 .card-header h2 {
-    font-family: 'DM Serif Display', serif;
     font-size: 20px;
     color: var(--text);
 }
@@ -35,7 +34,7 @@
 
 .go-back:hover { color: var(--pink-dark); }
 
-/* ===== PROFILE PREVIEW ===== */
+/* profile preview */
 .profile-preview {
     display: flex;
     align-items: center;
@@ -64,7 +63,6 @@
 .profile-name  { font-weight: 600; font-size: 15px; color: var(--text); }
 .profile-email { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
 
-/* ===== ALERTS ===== */
 .alert {
     padding: 10px 14px;
     border-radius: 8px;
@@ -75,7 +73,7 @@
 .alert-success { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
 .alert-error   { background: #FFEBEE; color: #C62828; border: 1px solid #EF9A9A; }
 
-/* ===== UPLOAD FOTO ===== */
+/* photo upload */
 .upload-wrap {
     display: flex;
     align-items: center;
@@ -89,7 +87,7 @@
     align-items: center;
     gap: 6px;
     padding: 8px 18px;
-    background: var(--bg);
+    background: var(--bg-foreground);
     border: 1.5px dashed var(--border);
     border-radius: 8px;
     font-size: 13px;
@@ -110,7 +108,6 @@
     font-weight: 400;
 }
 
-/* Sembunyikan input file default, diganti label */
 .upload-input {
     width: 0.1px;
     height: 0.1px;
@@ -126,7 +123,6 @@
     font-style: italic;
 }
 
-/* ===== FORM GRID ===== */
 .profile-form { margin-top: 8px; }
 
 .form-grid {
@@ -165,11 +161,11 @@
     border-color: var(--pink);
 }
 
-/* ===== BUTTONS ===== */
 .form-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .btn {
@@ -186,16 +182,23 @@
     transition: opacity 0.2s;
 }
 
-.btn-primary { background: var(--pink-dark); color: var(--white); }
+.btn-primary { background: var(--pink); color: var(--white); }
 .btn-primary:hover { opacity: 0.88; }
 
 .btn-outline {
     background: transparent;
-    color: var(--pink-dark);
-    border: 1.5px solid var(--pink-dark);
+    color: var(--pink);
+    border: 1.5px solid var(--pink);
 }
 
 .btn-outline:hover { background: var(--pink-light); }
+
+.btn-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-right: 6px;
+}
 
 /* =============================================
    RESPONSIVE
@@ -208,4 +211,70 @@
     }
 
     .form-group.full-width { grid-column: 1; }
+}
+
+
+/* preview box */
+.photo-preview-box {
+    background: var(--bg);
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.preview-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+.preview-photo-wrap {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 12px;
+    border: 3px solid var(--pink);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.preview-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.preview-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .photo-preview-box {
+        padding: 16px;
+    }
+    
+    .preview-photo-wrap {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+.preview-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.photo-preview-box {
+    background: #FFF8FA;
+    border: 1.5px dashed var(--pink);
 }
