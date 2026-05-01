@@ -1,5 +1,7 @@
 # Ignore user data
 pages/data/users.json
+pages/data/tasks.json
+pages/data/categories.json
 
 # Ignore uploaded files
 uploads/
