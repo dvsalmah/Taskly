@@ -5,25 +5,9 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
   
-  body {
-    background:#eef1f7;
-  }
-  
   .layout {
     display:flex;
     height:100vh;
-  }
-  
-  .sidebar {
-    width:240px;
-    background:#f48b95;
-    color:white;
-    padding:20px;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    margin-top:70px;
-    height:calc(100vh - 70px);
   }
   
   .profile {
@@ -45,13 +29,6 @@
     align-items:center;
     gap:8px;
   }
-  
-  .main {
-    flex:1;
-    padding:20px;
-    margin-top:70px;
-  }
-
   
   .invite {
     background:#3498db;
