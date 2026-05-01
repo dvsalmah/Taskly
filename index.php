@@ -1,5 +1,4 @@
 <?php
-    // Logika backend bisa ditaruh di atas sini
     $appName = "Taskly";
     $pageTitle = "Welcome to " . $appName;
     $heroSubtitle = "Kickstart your productivity journey. Keep track of your tasks, plan your schedule, and get things done—easier than ever.";
