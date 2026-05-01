@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['user'])) {
-    header('Location: pages/dashboard.php');
+    header('Location: homepage.php');
     exit;
 }
 
@@ -19,13 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $agree      = $_POST['agree']            ?? '';
 
     if (!$first_name || !$last_name || !$username || !$email || !$password) {
-        $error = 'Semua field wajib diisi.';
+        $error = 'All fields are required.';
     } elseif ($password !== $confirm_pw) {
-        $error = 'Password dan konfirmasi password tidak cocok.';
+        $error = 'Password and confirmation password do not match.';
     } elseif (strlen($password) < 6) {
-        $error = 'Password minimal 6 karakter.';
+        $error = 'Password must be at least 6 characters.';
     } elseif (!$agree) {
-        $error = 'Kamu harus menyetujui Terms of Service.';
+        $error = 'You must agree to the Terms of Service and Privacy Policy.';
     } else {
         $users_file = 'data/users.json';
         if (!is_dir('data')) mkdir('data', 0755, true);
@@ -36,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         foreach ($users as $u) {
-            if ($u['username'] === $username) { $error = 'Username sudah digunakan.'; break; }
-            if ($u['email']    === $email)    { $error = 'Email sudah digunakan.';    break; }
+            if ($u['username'] === $username) { $error = 'Username is already taken.'; break; }
+            if ($u['email']    === $email)    { $error = 'Email is already taken.';    break; }
         }
 
         if (!$error) {
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
 
             file_put_contents($users_file, json_encode($users, JSON_PRETTY_PRINT));
-            $success = 'Akun berhasil dibuat! Silakan sign in.';
+            $success = 'Account successfully created! Please sign in.';
         }
     }
 }
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up — Taskly</title>
+    <title>Register — Taskly</title>
     <link rel="stylesheet" href="../css/auth.css">
 </head>
 <body>
@@ -77,15 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="auth-form-side">
-            <h1 class="auth-title">Sign Up</h1>
-
+            <h1 class="auth-title">Stay on track!</h1>
+            <p class="auth-subtitle">Start your productive journey</p>
             <?php if ($error): ?>
                 <div class="alert-error"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
             <?php if ($success): ?>
                 <div class="alert-success">
                     <?= htmlspecialchars($success) ?>
-                    <a href="login.php">Sign In sekarang &rarr;</a>
+                    <a href="login.php">Login now &rarr;</a>
                 </div>
             <?php endif; ?>
 
@@ -128,13 +128,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="submit" class="btn-auth">Register</button>
 
                 <p class="auth-switch">
-                    Already have an account? <a href="login.php">Sign In</a>
+                    Already have an account? <a href="login.php">Login here</a>
                 </p>
             </form>
         </div>
 
     </div>
 </div>
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="../js/auth.js"></script>
 </body>
 </html>

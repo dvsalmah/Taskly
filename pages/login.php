@@ -1,8 +1,34 @@
 <?php
 session_start();
+$users_file = 'data/users.json';
 
+//cek cookie remember
+if (!isset($_SESSION['user']) && isset($_COOKIE['taskly_remember'])) {
+    $cookie_user = $_COOKIE['taskly_remember'];
+    
+    if (file_exists($users_file)) {
+        $users = json_decode(file_get_contents($users_file), true) ?? [];
+        foreach ($users as $u) {
+            if ($u['username'] === $cookie_user) {
+                $_SESSION['user'] = [
+                    'first_name' => $u['first_name'],
+                    'last_name'  => $u['last_name'],
+                    'username'   => $u['username'],
+                    'email'      => $u['email'],
+                    'contact'    => $u['contact']  ?? '',
+                    'position'   => $u['position'] ?? '',
+                    'photo'      => $u['photo']    ?? 'https://i.pravatar.cc/150?img=8',
+                ];
+                header('Location: homepage.php');
+                exit;
+            }
+        }
+    }
+}
+
+//cek login
 if (isset($_SESSION['user'])) {
-    header('Location: pages/dashboard.php');
+    header('Location: homepage.php');
     exit;
 }
 
@@ -58,7 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="auth-card">
 
         <div class="auth-form-side">
-            <h1 class="auth-title">Sign In</h1>
+            <h1 class="auth-title">Welcome Back!</h1>
+            <p class="auth-subtitle">Continue where you left off</p>
 
             <?php if ($error): ?>
                 <div class="alert-error"><?= htmlspecialchars($error) ?></div>
@@ -79,10 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="checkbox" name="remember"> Remember me
                 </label>
 
-                <button type="submit" class="btn-auth">Sign In</button>
+                <button type="submit" class="btn-auth">Login</button>
 
                 <p class="auth-switch">
-                    Don't have an account? <a href="register.php">Sign Up</a>
+                    Don't have an account? <a href="register.php">Register here</a>
                 </p>
             </form>
         </div>
@@ -95,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     </div>
 </div>
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="../js/login.js"></script>
 </body>
 </html>

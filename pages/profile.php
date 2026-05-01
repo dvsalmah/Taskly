@@ -105,6 +105,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
         unset($_SESSION['temp_photo']); 
     }
 
+    $users_file = 'data/users.json';
+    if (file_exists($users_file)) {
+        $users = json_decode(file_get_contents($users_file), true);
+        foreach ($users as $key => $u) {
+            if ($u['username'] === $_SESSION['user']['username']) {
+                $users[$key]['first_name'] = $_SESSION['user']['first_name'];
+                $users[$key]['last_name']  = $_SESSION['user']['last_name'];
+                $users[$key]['email']      = $_SESSION['user']['email'];
+                $users[$key]['contact']    = $_SESSION['user']['contact'];
+                $users[$key]['position']   = $_SESSION['user']['position'];
+                $users[$key]['photo']      = $_SESSION['user']['photo'];
+                break; 
+            }
+        }
+        file_put_contents($users_file, json_encode($users, JSON_PRETTY_PRINT));
+    }
+
     $message  = 'Your profile has been updated successfully.';
     $msg_type = 'success';
 }
@@ -139,8 +156,8 @@ $full_name_display = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile — Taskly</title>
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="../css/main.css?v=<?= time(); ?>">
+    <link rel="stylesheet" href="../css/profile.css?v=<?= time(); ?>">
 </head>
 <body>
 
@@ -154,7 +171,7 @@ $full_name_display = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'
         <div class="card">
             <div class="card-header">
                 <h2>Account Information</h2>
-                <a href="dashboard.php" class="go-back">Go Back</a>
+                <a href="homepage.php" class="go-back">Go Back</a>
             </div>
 
             <div class="profile-preview">
