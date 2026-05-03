@@ -142,7 +142,6 @@ $minDeadline = date('Y-m-d\TH:i');
                     <h3>No tasks match this filter</h3>
                 </div>
                 <?php foreach ($tasks as $task):
-                    // category info sudah ter-JOIN dari DB (cat_name, cat_color)
                     $catId    = $task['category_id'] ? (int)$task['category_id'] : null;
                     $cat      = $catId ? getCategoryById($catId, $categories) : null;
                     $priority = $task['priority'] ?? 'low';
@@ -167,7 +166,7 @@ $minDeadline = date('Y-m-d\TH:i');
                      data-updated="<?= htmlspecialchars($updatedAt) ?>">
 
                     <div class="task-card-top">
-                        <?php if ($vital): ?><span class="badge badge-vital">🔥 Vital</span><?php endif; ?>
+                        <?php if ($vital): ?><span class="badge badge-vital">Vital</span><?php endif; ?>
                         <span class="badge <?= priorityClass($priority) ?>"><?= priorityLabel($priority) ?></span>
                     </div>
 
@@ -188,9 +187,9 @@ $minDeadline = date('Y-m-d\TH:i');
 
                         <div class="task-card-footer">
                             <?php if (!empty($dl)): ?>
-                                <span class="task-deadline <?= isVital($task) ? 'urgent' : '' ?>">
-                                    🗓 <?= htmlspecialchars(deadlineLabel($dl)) ?>
-                                </span>
+                                <div class="task-deadline <?= isVital($task) ? 'urgent' : '' ?>">
+                                    <img src="../assets/clock.svg" alt="clock" class="vital-icon"><?= htmlspecialchars(deadlineLabel($dl)) ?>
+                                </div>
                             <?php endif; ?>
                             <span class="task-date">
                                 <?php if (!empty($updatedAt)): ?>
@@ -213,7 +212,7 @@ $minDeadline = date('Y-m-d\TH:i');
     <div class="modal modal-preview" onclick="event.stopPropagation()">
         <div class="modal-header">
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <span id="pv_vital_badge" style="display:none" class="badge badge-vital">🔥 Vital</span>
+                <span id="pv_vital_badge" style="display:none" class="badge badge-vital"><img src="../assets/fire.svg" alt="vital" class="vital-icon"> Vital</span>
                 <span id="pv_priority_badge" class="badge"></span>
                 <h2 id="pv_title" style="font-size:17px;"></h2>
             </div>

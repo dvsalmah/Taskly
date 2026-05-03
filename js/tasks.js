@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     window.closeModal = closeModal;
 
-    var taskModal    = document.getElementById('taskModal');
-    var openTaskBtn  = document.getElementById('openTaskModal');
+    var taskModal = document.getElementById('taskModal');
+    var openTaskBtn = document.getElementById('openTaskModal');
     var closeTaskBtn = document.getElementById('closeTaskModal');
     var cancelAddBtn = document.getElementById('cancelAddTask');
 
@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (closeTaskBtn && taskModal) closeTaskBtn.addEventListener('click', function () { closeModal(taskModal); });
     if (cancelAddBtn && taskModal) cancelAddBtn.addEventListener('click', function () { closeModal(taskModal); });
 
-    var editModal     = document.getElementById('editModal');
-    var closeEditBtn  = document.getElementById('closeEditModal');
+    var editModal = document.getElementById('editModal');
+    var closeEditBtn = document.getElementById('closeEditModal');
     var cancelEditBtn = document.getElementById('cancelEditTask');
 
     if (closeEditBtn && editModal) closeEditBtn.addEventListener('click', function () { closeModal(editModal); });
@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!datetimeStr) return '';
         var then = new Date(datetimeStr.replace(' ', 'T'));
         var diff = Math.floor((Date.now() - then.getTime()) / 1000);
-        if (diff < 60)     return 'just now';
-        if (diff < 3600)   return Math.floor(diff / 60) + ' min ago';
-        if (diff < 86400)  return Math.floor(diff / 3600) + ' hr ago';
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
         if (diff < 604800) return Math.floor(diff / 86400) + ' days ago';
         return then.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
@@ -42,20 +42,20 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!dl) return '';
         var dlDate = new Date(dl.replace(' ', 'T'));
         var diffMs = dlDate - Date.now();
-        if (diffMs < 0)              return 'Overdue';
-        if (diffMs < 3600000)        return 'Due in ' + Math.ceil(diffMs / 60000) + ' min';
-        if (diffMs < 86400000)       return 'Due in ' + Math.ceil(diffMs / 3600000) + ' hr';
-        if (diffMs < 172800000)      return 'Due tomorrow';
-        return 'Due ' + dlDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'})
-                     + ' ' + dlDate.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+        if (diffMs < 0) return 'Overdue';
+        if (diffMs < 3600000) return 'Due in ' + Math.ceil(diffMs / 60000) + ' min';
+        if (diffMs < 86400000) return 'Due in ' + Math.ceil(diffMs / 3600000) + ' hr';
+        if (diffMs < 172800000) return 'Due tomorrow';
+        return 'Due ' + dlDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            + ' ' + dlDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     }
 
     var searchInput = document.getElementById('globalSearch');
-    var chips       = document.querySelectorAll('.chip[data-filter]');
-    var allCards    = document.querySelectorAll('.task-card[data-id]');
-    var priSel      = document.getElementById('priorityFilter');
+    var chips = document.querySelectorAll('.chip[data-filter]');
+    var allCards = document.querySelectorAll('.task-card[data-id]');
+    var priSel = document.getElementById('priorityFilter');
 
-    var activeStatus   = 'all';
+    var activeStatus = 'all';
     var activePriority = 'all';
 
     function applyFilters() {
@@ -63,12 +63,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
         allCards.forEach(function (card) {
-            
-            var statusOk   = (activeStatus   === 'all' || card.dataset.status   === activeStatus);
+
+            var statusOk = (activeStatus === 'all' || card.dataset.status === activeStatus);
             var priorityOk = (activePriority === 'all' || card.dataset.priority === activePriority);
-            
-            var title   = (card.dataset.title   || '').toLowerCase();
-            var desc    = (card.dataset.desc    || '').toLowerCase();
+
+            var title = (card.dataset.title || '').toLowerCase();
+            var desc = (card.dataset.desc || '').toLowerCase();
             var catName = (card.dataset.catName || '').toLowerCase();
             var searchOk = !searchQuery || title.includes(searchQuery) || desc.includes(searchQuery) || catName.includes(searchQuery);
 
@@ -100,16 +100,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    var previewModal    = document.getElementById('previewModal');
+    var previewModal = document.getElementById('previewModal');
     var closePreviewBtn = document.getElementById('closePreviewModal');
     var _currentCardData = {};
 
     function fillEditModal(data) {
-        document.getElementById('edit_id').value       = data.id;
-        document.getElementById('edit_title').value    = data.title;
-        document.getElementById('edit_desc').value     = data.desc;
+        document.getElementById('edit_id').value = data.id;
+        document.getElementById('edit_title').value = data.title;
+        document.getElementById('edit_desc').value = data.desc;
         document.getElementById('edit_priority').value = data.priority;
-        document.getElementById('edit_status').value   = data.status;
+        document.getElementById('edit_status').value = data.status;
         var dl = (data.deadline || '').replace(' ', 'T');
         document.getElementById('edit_deadline').value = dl;
     }
@@ -121,29 +121,30 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!previewModal) return;
 
         var data = {
-            id:       card.dataset.id       || '',
-            title:    card.dataset.title    || '',
-            desc:     card.dataset.desc     || '',
+            id: card.dataset.id || '',
+            title: card.dataset.title || '',
+            desc: card.dataset.desc || '',
             category: card.dataset.category || '',
             priority: card.dataset.priority || 'low',
-            status:   card.dataset.status   || 'not_started',
+            status: card.dataset.status || 'not_started',
             deadline: card.dataset.deadline || '',
-            catName:  card.dataset.catName  || '',
+            catName: card.dataset.catName || '',
             catColor: card.dataset.catColor || '',
-            updated:  card.dataset.updated  || '',
+            updated: card.dataset.updated || '',
+            created: card.dataset.created || '',
         };
         _currentCardData = data;
 
         document.getElementById('pv_title').textContent = data.title;
         document.getElementById('pv_status_task_id').value = data.id;
         document.getElementById('pv_delete_id').value = data.id;
-        document.getElementById('pv_status_select').value  = data.status;
+        document.getElementById('pv_status_select').value = data.status;
 
         var priEl = document.getElementById('pv_priority_badge');
         var priMap = { high: ['High', 'badge-priority-high'], medium: ['Medium', 'badge-priority-medium'], low: ['Low', 'badge-priority-low'] };
         var priInfo = priMap[data.priority] || priMap['low'];
         priEl.textContent = priInfo[0];
-        priEl.className   = 'badge ' + priInfo[1];
+        priEl.className = 'badge ' + priInfo[1];
         document.getElementById('pv_priority_text').textContent = priInfo[0];
 
         var descEl = document.getElementById('pv_desc');
@@ -159,14 +160,33 @@ document.addEventListener('DOMContentLoaded', function () {
         var dlRow = document.getElementById('pv_dl_row'), dlEl = document.getElementById('pv_deadline');
         if (data.deadline) { dlEl.textContent = deadlineLabelJS(data.deadline); dlRow.style.display = ''; } else { dlRow.style.display = 'none'; }
 
-        var dateEl = card.querySelector('.task-date');
-        document.getElementById('pv_created').textContent = dateEl ? dateEl.textContent.trim() : '';
+        document.getElementById('pv_created').textContent = data.created ? timeAgoJS(data.created) : '';
 
         var updRow = document.getElementById('pv_updated_row'), updEl = document.getElementById('pv_updated');
         if (data.updated) { updEl.textContent = 'edited ' + timeAgoJS(data.updated); updRow.style.display = ''; } else { updRow.style.display = 'none'; }
 
         openModal(previewModal);
     }
+
+    function refreshDeadlines() {
+        document.querySelectorAll('.task-card[data-id]').forEach(function (card) {
+            var dl = card.dataset.deadline || '';
+            var el = card.querySelector('.task-deadline');
+            if (!dl || !el) return;
+            var label = deadlineLabelJS(dl);
+            var iconNode = el.querySelector('img, svg');
+            if (iconNode) {
+                Array.from(el.childNodes).forEach(function (n) {
+                    if (n.nodeType === Node.TEXT_NODE) el.removeChild(n);
+                });
+                el.appendChild(document.createTextNode(label));
+            } else {
+                el.textContent = label;
+            }
+        });
+    }
+    refreshDeadlines();
+    setInterval(refreshDeadlines, 60000);
 
     document.querySelectorAll('.task-card[data-id]').forEach(function (card) { card.addEventListener('click', function () { openPreview(card); }); });
 

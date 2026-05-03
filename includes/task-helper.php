@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('Asia/Jakarta');
+
 function loadTasks(string $username): array {
     global $conn;
     $stmt = $conn->prepare(
@@ -26,10 +28,10 @@ function addTask(string $username, string $title, string $description,
     $catId = $category_id ?: null;
 
     $stmt = $conn->prepare(
-        "INSERT INTO tasks (username, title, description, category_id, priority, status, deadline, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO tasks (username, title, description, category_id, priority, status, deadline, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    $stmt->bind_param("sssisssss", $username, $title, $description, $catId, $priority, $status, $dl, $now, $now);
+    $stmt->bind_param("sssissss", $username, $title, $description, $catId, $priority, $status, $dl, $now);
     $stmt->execute();
     $id = $conn->insert_id;
     $stmt->close();
@@ -137,13 +139,18 @@ function parseDeadline(string $raw): ?string {
 }
 
 function isVital(array $task): bool {
-    if (($task['priority'] ?? '') !== 'high') return false;
+    if (($task['status'] ?? '') === 'completed') return false;
     $raw = trim($task['deadline'] ?? '');
-    if ($raw === '') return false;
-    $ts   = strtotime($raw);
+    if ($raw === '') {
+        return (($task['priority'] ?? '') === 'high');
+    }
+    $ts = strtotime($raw);
     if (!$ts || $ts === -1) return false;
     $diff = $ts - time();
-    return $diff <= 172800 && $diff > -86400;
+    $isUrgent = ($diff <= 172800 && $diff > -86400); 
+    $isHigh   = (($task['priority'] ?? '') === 'high');
+
+    return ($isUrgent || $isHigh);
 }
 
 function statusLabel(string $status): string {
