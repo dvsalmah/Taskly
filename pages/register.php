@@ -28,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!$agree) {
         $error = 'You must agree to the Terms of Service and Privacy Policy.';
     } else {
-        // Cek duplikat username atau email
         $chk = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
         $chk->bind_param("ss", $username, $email);
         $chk->execute();
@@ -36,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $exists = $chk->num_rows > 0;
 
         if ($exists) {
-            // Cek mana yang duplikat
             $chk->bind_result($dummyId);
             $chk->fetch();
             $chk->close();
