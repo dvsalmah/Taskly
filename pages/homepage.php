@@ -2,6 +2,7 @@
 session_start();
 if (!isset($_SESSION['user'])) { header('Location: ../login.php'); exit; }
 
+require_once '../includes/connect.php';
 require_once '../includes/task-helper.php';
 
 $user     = $_SESSION['user'];
@@ -30,9 +31,7 @@ $done_tasks = array_slice(array_values($done_tasks), 0, 5);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — Taskly</title>
+<?php $pageTitle = 'Homepage'; include '../includes/head.php'; ?>
     <link rel="stylesheet" href="../css/main.css?v=<?= time() ?>">
     <link rel="stylesheet" href="../css/homepage.css?v=<?= time() ?>">
     <link rel="stylesheet" href="../css/tasks.css?v=<?= time() ?>">
@@ -62,7 +61,7 @@ $done_tasks = array_slice(array_values($done_tasks), 0, 5);
                             </div>
                         <?php else: ?>
                             <?php foreach ($todo_tasks as $t):
-                                $cat = $t['category_id'] ? getCategoryById($t['category_id'], $categories) : null;
+                                $cat = $t['category_id'] ? getCategoryById((int)$t['category_id'], $categories) : null;
                                 $isVital     = isVital($t);
                                 $borderColor = $isVital ? '#FF6F00' : ($cat ? $cat['color'] : '#f48b95');
                             ?>
@@ -135,7 +134,7 @@ $done_tasks = array_slice(array_values($done_tasks), 0, 5);
                         <?php else: ?>
                         <div class="completed-grid">
                             <?php foreach ($done_tasks as $t):
-                                $cat = $t['category_id'] ? getCategoryById($t['category_id'], $categories) : null;
+                                $cat = $t['category_id'] ? getCategoryById((int)$t['category_id'], $categories) : null;
                             ?>
                             <div class="completed-task">
                                 <h4><?= htmlspecialchars($t['title']) ?></h4>

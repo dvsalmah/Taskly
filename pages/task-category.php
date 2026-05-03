@@ -2,6 +2,7 @@
 session_start();
 if (!isset($_SESSION['user'])) { header('Location: ../login.php'); exit; }
 
+require_once '../includes/connect.php';
 require_once '../includes/task-helper.php';
 
 $username = $_SESSION['user']['username'];
@@ -26,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     elseif ($action === 'delete') {
-        $id = $_POST['cat_id'] ?? '';
+        $id = (int)($_POST['cat_id'] ?? 0);
         if ($id) deleteCategory($id, $username);
         header('Location: task-category.php'); exit;
     }
@@ -38,7 +39,7 @@ $allTasks   = loadTasks($username);
 // Count tasks per category
 $catCounts = [];
 foreach ($allTasks as $t) {
-    $cid = $t['category_id'] ?? '';
+    $cid = $t['category_id'] ? (int)$t['category_id'] : null;
     if ($cid) $catCounts[$cid] = ($catCounts[$cid] ?? 0) + 1;
 }
 
@@ -48,9 +49,7 @@ $presets = ['#EC003F','#FF6F00','#F9A825','#2E7D32','#1565C0','#6A1B9A','#00838F
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Categories — Taskly</title>
+<?php $pageTitle = 'Task Categories'; include '../includes/head.php'; ?>
     <link rel="stylesheet" href="../css/main.css?v=<?= time() ?>">
     <link rel="stylesheet" href="../css/tasks.css?v=<?= time() ?>">
     <style>
@@ -76,7 +75,7 @@ $presets = ['#EC003F','#FF6F00','#F9A825','#2E7D32','#1565C0','#6A1B9A','#00838F
                 <p><?= count($categories) ?> categor<?= count($categories) !== 1 ? 'ies' : 'y' ?></p>
             </div>
             <button class="btn btn-primary" id="openCatModal">
-                <img src="../assets/add.png" alt="Add Category" class="icon" width="15px" height="15px">
+                <img src="../assets/add.svg" alt="Add Category" class="icon-small">
                 Add Category
             </button>
         </div>
@@ -159,6 +158,31 @@ $presets = ['#EC003F','#FF6F00','#F9A825','#2E7D32','#1565C0','#6A1B9A','#00838F
 
 <script src="../js/tasks.js"></script>
 <script>
+var openCatBtn  = document.getElementById('openCatModal');
+var catModal    = document.getElementById('catModal');
+var closeCatBtn = document.getElementById('closeCatModal');
+
+if (openCatBtn && catModal) {
+    openCatBtn.addEventListener('click', function () {
+        catModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    });
+}
+if (closeCatBtn && catModal) {
+    closeCatBtn.addEventListener('click', function () {
+        catModal.classList.remove('open');
+        document.body.style.overflow = '';
+    });
+}
+if (catModal) {
+    catModal.addEventListener('click', function (e) {
+        if (e.target === catModal) {
+            catModal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    });
+}
+
 document.querySelectorAll('.color-preset').forEach(function(el) {
     el.addEventListener('click', function() {
         document.querySelectorAll('.color-preset').forEach(function(p){ p.classList.remove('selected'); });

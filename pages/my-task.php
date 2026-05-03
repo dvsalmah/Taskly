@@ -2,6 +2,7 @@
 session_start();
 if (!isset($_SESSION['user'])) { header('Location: ../login.php'); exit; }
 
+require_once '../includes/connect.php';
 require_once '../includes/task-helper.php';
 
 $username   = $_SESSION['user']['username'];
@@ -16,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
         $title    = trim($_POST['title']    ?? '');
         $desc     = trim($_POST['desc']     ?? '');
-        $cat_id   = $_POST['category_id']  ?? '';
+        $cat_id   = $_POST['category_id'] !== '' ? (int)$_POST['category_id'] : null;
         $priority = $_POST['priority']     ?? 'medium';
         $status   = $_POST['status']       ?? 'not_started';
         $deadline = trim($_POST['deadline'] ?? '');
@@ -34,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     elseif ($action === 'update_status') {
-        $id     = $_POST['task_id'] ?? '';
+        $id     = (int)($_POST['task_id'] ?? 0);
         $status = $_POST['status']  ?? '';
         if ($id && in_array($status, ['not_started','in_progress','completed'])) {
             updateTask($id, ['status' => $status]);
@@ -43,10 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     elseif ($action === 'edit') {
-        $id       = $_POST['task_id']     ?? '';
+        $id       = (int)($_POST['task_id']    ?? 0);
         $title    = trim($_POST['title']  ?? '');
         $desc     = trim($_POST['desc']   ?? '');
-        $cat_id   = $_POST['category_id'] ?? '';
+        $cat_id   = $_POST['category_id'] !== '' ? (int)$_POST['category_id'] : null;
         $priority = $_POST['priority']    ?? 'medium';
         $status   = $_POST['status']      ?? 'not_started';
         $deadline = trim($_POST['deadline'] ?? '');
@@ -68,23 +69,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     elseif ($action === 'delete') {
-        $id = $_POST['task_id'] ?? '';
+        $id = (int)($_POST['task_id'] ?? 0);
         if ($id) deleteTask($id, $username);
         header('Location: my-task.php'); exit;
     }
 }
 
-$tasks = loadTasks($username);
-usort($tasks, fn($a,$b) => strcmp($b['created_at'], $a['created_at']));
+$tasks      = loadTasks($username);
+$categories = loadCategories($username);
 
 $minDeadline = date('Y-m-d\TH:i');
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Task — Taskly</title>
+<?php $pageTitle = 'My Task'; include '../includes/head.php'; ?>
     <link rel="stylesheet" href="../css/main.css?v=<?= time() ?>">
     <link rel="stylesheet" href="../css/tasks.css?v=<?= time() ?>">
 </head>
@@ -143,7 +142,9 @@ $minDeadline = date('Y-m-d\TH:i');
                     <h3>No tasks match this filter</h3>
                 </div>
                 <?php foreach ($tasks as $task):
-                    $cat      = $task['category_id'] ? getCategoryById($task['category_id'], $categories) : null;
+                    // category info sudah ter-JOIN dari DB (cat_name, cat_color)
+                    $catId    = $task['category_id'] ? (int)$task['category_id'] : null;
+                    $cat      = $catId ? getCategoryById($catId, $categories) : null;
                     $priority = $task['priority'] ?? 'low';
                     $vital    = isVital($task);
                     $dl       = $task['deadline'] ?? '';

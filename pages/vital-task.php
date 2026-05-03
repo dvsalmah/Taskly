@@ -2,6 +2,7 @@
 session_start();
 if (!isset($_SESSION['user'])) { header('Location: ../login.php'); exit; }
 
+require_once '../includes/connect.php';
 require_once '../includes/task-helper.php';
 
 $username   = $_SESSION['user']['username'];
@@ -23,9 +24,7 @@ usort($vital_tasks, function ($a, $b) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vital Task — Taskly</title>
+<?php $pageTitle = 'Vital Task'; include '../includes/head.php'; ?>
     <link rel="stylesheet" href="../css/main.css?v=<?= time() ?>">
     <link rel="stylesheet" href="../css/tasks.css?v=<?= time() ?>">
 </head>
@@ -76,7 +75,7 @@ usort($vital_tasks, function ($a, $b) {
                     <h3>No tasks match this filter</h3>
                 </div>
                 <?php foreach ($vital_tasks as $task):
-                    $cat      = $task['category_id'] ? getCategoryById($task['category_id'], $categories) : null;
+                    $cat      = $task['category_id'] ? getCategoryById((int)$task['category_id'], $categories) : null;
                     $priority = $task['priority'] ?? 'high';
                     $dl       = $task['deadline'] ?? '';
                     $updatedAt = $task['updated_at'] ?? '';

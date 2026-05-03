@@ -1,127 +1,149 @@
 <?php
-
-function getDataDir() {
-    return __DIR__ . '/../data/';
-}
-
-function generateId() {
-    return bin2hex(random_bytes(8));
-}
-
-function loadAllTasks() {
-    $file = getDataDir() . 'tasks.json';
-    if (!file_exists($file)) return [];
-    return json_decode(file_get_contents($file), true) ?? [];
-}
-
 function loadTasks(string $username): array {
-    $all = loadAllTasks();
-    return array_values(array_filter($all, fn($t) => ($t['username'] ?? '') === $username));
-}
-
-function saveAllTasks(array $tasks): void {
-    $dir = getDataDir();
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    file_put_contents($dir . 'tasks.json', json_encode(array_values($tasks), JSON_PRETTY_PRINT));
+    global $conn;
+    $stmt = $conn->prepare(
+        "SELECT t.*, c.name AS cat_name, c.color AS cat_color
+         FROM tasks t
+         LEFT JOIN categories c ON t.category_id = c.id
+         WHERE t.username = ?
+         ORDER BY t.created_at DESC"
+    );
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $tasks  = [];
+    while ($row = $result->fetch_assoc()) $tasks[] = $row;
+    $stmt->close();
+    return $tasks;
 }
 
 function addTask(string $username, string $title, string $description,
-                 string $category_id, string $priority, string $status,
-                 string $deadline = ''): array {
-    $all  = loadAllTasks();
-    $task = [
-        'id'          => generateId(),
-        'username'    => $username,
-        'title'       => $title,
-        'description' => $description,
-        'category_id' => $category_id,
-        'priority'    => $priority,   
-        'vital'       => false,       
-        'status'      => $status,
-        'deadline'    => $deadline,  
-        'created_at'  => date('Y-m-d H:i:s'),
-        'updated_at'  => '',
-    ];
-    $all[] = $task;
-    saveAllTasks($all);
-    return $task;
+                 ?int $category_id, string $priority, string $status,
+                 string $deadline = ''): int {
+    global $conn;
+    $dl    = parseDeadline($deadline);
+    $now   = date('Y-m-d H:i:s');
+    $catId = $category_id ?: null;
+
+    $stmt = $conn->prepare(
+        "INSERT INTO tasks (username, title, description, category_id, priority, status, deadline, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    );
+    $stmt->bind_param("sssisssss", $username, $title, $description, $catId, $priority, $status, $dl, $now, $now);
+    $stmt->execute();
+    $id = $conn->insert_id;
+    $stmt->close();
+    return $id;
 }
 
-function updateTask(string $id, array $fields): bool {
-    $all = loadAllTasks();
-    foreach ($all as &$t) {
-        if ($t['id'] === $id) {
-            foreach ($fields as $k => $v) $t[$k] = $v;
-            $t['updated_at'] = date('Y-m-d H:i:s');
-            saveAllTasks($all);
-            return true;
+function updateTask(int $id, array $fields): bool {
+    global $conn;
+    if (empty($fields)) return false;
+
+    if (isset($fields['deadline'])) {
+        $fields['deadline'] = parseDeadline($fields['deadline']);
+    }
+
+    $setClauses = [];
+    $types      = '';
+    $values     = [];
+
+    foreach ($fields as $col => $val) {
+        $allowed = ['title','description','category_id','priority','status','deadline'];
+        if (!in_array($col, $allowed)) continue;
+        $setClauses[] = "`$col` = ?";
+        if ($col === 'category_id') {
+            $types .= 'i';
+            $values[] = $val ?: null;
+        } else {
+            $types .= 's';
+            $values[] = $val;
         }
     }
-    return false;
+    if (empty($setClauses)) return false;
+
+    $setClauses[] = "updated_at = NOW()";
+    $types       .= 'i';
+    $values[]     = $id;
+
+    $sql  = "UPDATE tasks SET " . implode(', ', $setClauses) . " WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$values);
+    $ok = $stmt->execute();
+    $stmt->close();
+    return $ok;
 }
 
-function deleteTask(string $id, string $username): bool {
-    $all = loadAllTasks();
-    $new = array_filter($all, fn($t) => !($t['id'] === $id && $t['username'] === $username));
-    if (count($new) === count($all)) return false;
-    saveAllTasks($new);
-    return true;
-}
-
-function loadAllCategories(): array {
-    $file = getDataDir() . 'categories.json';
-    if (!file_exists($file)) return [];
-    return json_decode(file_get_contents($file), true) ?? [];
+function deleteTask(int $id, string $username): bool {
+    global $conn;
+    $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ? AND username = ?");
+    $stmt->bind_param("is", $id, $username);
+    $stmt->execute();
+    $ok = $stmt->affected_rows > 0;
+    $stmt->close();
+    return $ok;
 }
 
 function loadCategories(string $username): array {
-    $all = loadAllCategories();
-    return array_values(array_filter($all, fn($c) => ($c['username'] ?? '') === $username));
-}
-
-function saveAllCategories(array $cats): void {
-    $dir = getDataDir();
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    file_put_contents($dir . 'categories.json', json_encode(array_values($cats), JSON_PRETTY_PRINT));
+    global $conn;
+    $stmt = $conn->prepare("SELECT * FROM categories WHERE username = ? ORDER BY name ASC");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $cats   = [];
+    while ($row = $result->fetch_assoc()) $cats[] = $row;
+    $stmt->close();
+    return $cats;
 }
 
 function addCategory(string $username, string $name, string $color): array {
-    $all = loadAllCategories();
-    $cat = [
-        'id'       => generateId(),
-        'username' => $username,
-        'name'     => $name,
-        'color'    => $color,
-    ];
-    $all[] = $cat;
-    saveAllCategories($all);
-    return $cat;
+    global $conn;
+    $stmt = $conn->prepare("INSERT INTO categories (username, name, color) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $username, $name, $color);
+    $stmt->execute();
+    $id = $conn->insert_id;
+    $stmt->close();
+    return ['id' => $id, 'username' => $username, 'name' => $name, 'color' => $color];
 }
 
-function deleteCategory(string $id, string $username): bool {
-    $all = loadAllCategories();
-    $new = array_filter($all, fn($c) => !($c['id'] === $id && $c['username'] === $username));
-    if (count($new) === count($all)) return false;
-    saveAllCategories($new);
-    return true;
+function deleteCategory(int $id, string $username): bool {
+    global $conn;
+    $nullStmt = $conn->prepare("UPDATE tasks SET category_id = NULL WHERE category_id = ? AND username = ?");
+    $nullStmt->bind_param("is", $id, $username);
+    $nullStmt->execute();
+    $nullStmt->close();
+
+    $stmt = $conn->prepare("DELETE FROM categories WHERE id = ? AND username = ?");
+    $stmt->bind_param("is", $id, $username);
+    $stmt->execute();
+    $ok = $stmt->affected_rows > 0;
+    $stmt->close();
+    return $ok;
 }
 
-function getCategoryById(string $id, array $categories): ?array {
+function getCategoryById(?int $id, array $categories): ?array {
+    if (!$id) return null;
     foreach ($categories as $c) {
-        if ($c['id'] === $id) return $c;
+        if ((int)$c['id'] === $id) return $c;
     }
     return null;
+}
+
+function parseDeadline(string $raw): ?string {
+    $raw = trim($raw);
+    if ($raw === '') return null;
+    $ts = strtotime(str_replace('T', ' ', $raw));
+    return ($ts !== false && $ts !== -1) ? date('Y-m-d H:i:s', $ts) : null;
 }
 
 function isVital(array $task): bool {
     if (($task['priority'] ?? '') !== 'high') return false;
     $raw = trim($task['deadline'] ?? '');
     if ($raw === '') return false;
-    $dl   = str_replace('T', ' ', $raw);
-    $dlTs = strtotime($dl);
-    if ($dlTs === false || $dlTs === -1) return false;
-    $diff = $dlTs - time();         
-    return $diff <= 172800;         
+    $ts   = strtotime($raw);
+    if (!$ts || $ts === -1) return false;
+    $diff = $ts - time();
+    return $diff <= 172800 && $diff > -86400;
 }
 
 function statusLabel(string $status): string {
@@ -168,10 +190,11 @@ function timeAgo(string $datetime): string {
 
 function deadlineLabel(string $deadline): string {
     if (empty($deadline)) return '';
-    $ts   = strtotime(str_replace('T', ' ', $deadline));
+    $ts = strtotime($deadline);
     if (!$ts || $ts === -1) return '';
     $diff = $ts - time();
-    if ($diff < 0)       return 'Overdue';
+    if ($diff < -86400)  return 'Overdue';
+    if ($diff < 0)       return 'Due today (overdue)';
     if ($diff < 3600)    return 'Due in ' . ceil($diff / 60) . ' min';
     if ($diff < 86400)   return 'Due in ' . ceil($diff / 3600) . ' hr';
     if ($diff < 172800)  return 'Due tomorrow';
