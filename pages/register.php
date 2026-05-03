@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/connect.php';
 
 if (isset($_SESSION['user'])) {
     header('Location: homepage.php');
@@ -27,43 +28,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!$agree) {
         $error = 'You must agree to the Terms of Service and Privacy Policy.';
     } else {
-        $users_file = 'data/users.json';
-        if (!is_dir('data')) mkdir('data', 0755, true);
+        // Cek duplikat username atau email
+        $chk = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
+        $chk->bind_param("ss", $username, $email);
+        $chk->execute();
+        $chk->store_result();
+        $exists = $chk->num_rows > 0;
 
-        $users = [];
-        if (file_exists($users_file)) {
-            $users = json_decode(file_get_contents($users_file), true) ?? [];
-        }
+        if ($exists) {
+            // Cek mana yang duplikat
+            $chk->bind_result($dummyId);
+            $chk->fetch();
+            $chk->close();
 
-        foreach ($users as $u) {
-            if ($u['username'] === $username) { $error = 'Username is already taken.'; break; }
-            if ($u['email']    === $email)    { $error = 'Email is already taken.';    break; }
+            $ckU = $conn->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
+            $ckU->bind_param("s", $username);
+            $ckU->execute();
+            $ckU->store_result();
+            if ($ckU->num_rows > 0) $error = 'Username is already taken.';
+            $ckU->close();
+
+            if (!$error) {
+                $ckE = $conn->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+                $ckE->bind_param("s", $email);
+                $ckE->execute();
+                $ckE->store_result();
+                if ($ckE->num_rows > 0) $error = 'Email is already taken.';
+                $ckE->close();
+            }
+        } else {
+            $chk->close();
         }
 
         if (!$error) {
-            $users[] = [
-                'first_name' => $first_name,
-                'last_name'  => $last_name,
-                'username'   => $username,
-                'email'      => $email,
-                'password'   => password_hash($password, PASSWORD_DEFAULT),
-                'contact'    => '',
-                'position'   => '',
-                'photo'      => 'https://i.pravatar.cc/150?img=8',
-            ];
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
+            $photo  = 'https://i.pravatar.cc/150?img=8';
 
-            file_put_contents($users_file, json_encode($users, JSON_PRETTY_PRINT));
+            $ins = $conn->prepare(
+                "INSERT INTO users (first_name, last_name, username, email, password, contact, position, photo)
+                 VALUES (?, ?, ?, ?, ?, '', '', ?)"
+            );
+            $ins->bind_param("ssssss", $first_name, $last_name, $username, $email, $hashed, $photo);
+            $ins->execute();
+            $ins->close();
+
             $success = 'Account successfully created! Please sign in.';
         }
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register — Taskly</title>
+<?php $pageTitle = 'Register'; include '../includes/head.php'; ?>
     <link rel="stylesheet" href="../css/auth.css">
 </head>
 <body>

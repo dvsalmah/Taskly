@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/connect.php';
 
 if (!isset($_SESSION['user'])) {
     header('Location: ../login.php');
@@ -9,25 +10,27 @@ if (!isset($_SESSION['user'])) {
 $message  = '';
 $msg_type = '';
 
+// ─── Cancel photo preview ────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cancel_photo') {
     unset($_SESSION['temp_photo']);
     $msg_type = 'error';
 }
 
+// ─── Keep photo preview ──────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'keep_photo') {
     if (isset($_SESSION['temp_photo'])) {
-        $_SESSION['temp_photo']['confirmed'] = true; 
+        $_SESSION['temp_photo']['confirmed'] = true;
         $msg_type = 'success';
     }
 }
 
-// photo preview
+// ─── Photo preview ───────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'preview') {
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === 0) {
-        $file = $_FILES['foto'];
+        $file        = $_FILES['foto'];
         $allowed_ext = ['jpg', 'jpeg', 'png'];
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $max_size = 2 * 1024 * 1024; 
+        $ext         = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $max_size    = 2 * 1024 * 1024;
 
         if (!in_array($ext, $allowed_ext)) {
             $message  = 'Only .jpg, .jpeg and .png files are allowed.';
@@ -41,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'previ
                 'mime'      => $file['type'],
                 'name'      => $file['name'],
                 'ext'       => $ext,
-                'confirmed' => false 
+                'confirmed' => false,
             ];
             $message  = 'Confirm your photo in the preview box below.';
             $msg_type = 'success';
@@ -52,80 +55,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'previ
     }
 }
 
-// update info 
+// ─── Update Info ─────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_info') {
 
-    $_SESSION['user']['first_name'] = htmlspecialchars(trim($_POST['first_name'] ?? ''));
-    $_SESSION['user']['last_name']  = htmlspecialchars(trim($_POST['last_name']  ?? ''));
-    $_SESSION['user']['email']      = htmlspecialchars(trim($_POST['email']      ?? ''));
-    $_SESSION['user']['contact']    = htmlspecialchars(trim($_POST['contact']    ?? ''));
-    $_SESSION['user']['position']   = htmlspecialchars(trim($_POST['position']   ?? ''));
+    $first_name = htmlspecialchars(trim($_POST['first_name'] ?? ''));
+    $last_name  = htmlspecialchars(trim($_POST['last_name']  ?? ''));
+    $email      = htmlspecialchars(trim($_POST['email']      ?? ''));
+    $contact    = htmlspecialchars(trim($_POST['contact']    ?? ''));
+    $position   = htmlspecialchars(trim($_POST['position']   ?? ''));
+    $username   = $_SESSION['user']['username'];
 
-    $uploads_dir = realpath(__DIR__ . '/../uploads');
-    if (!$uploads_dir) {
-        $uploads_dir = __DIR__ . '/../uploads';
-        @mkdir($uploads_dir, 0755, true);
-        $uploads_dir = realpath($uploads_dir);
+    // Update session
+    $_SESSION['user']['first_name'] = $first_name;
+    $_SESSION['user']['last_name']  = $last_name;
+    $_SESSION['user']['email']      = $email;
+    $_SESSION['user']['contact']    = $contact;
+    $_SESSION['user']['position']   = $position;
+
+    // ─── Handle photo upload ──────────────────────────────
+    $uploadsDir   = realpath(__DIR__ . '/../uploads');
+    if (!$uploadsDir) {
+        $uploadsDir = __DIR__ . '/../uploads';
+        @mkdir($uploadsDir, 0755, true);
+        $uploadsDir = realpath($uploadsDir);
     }
-    
-    $username     = preg_replace('/[^a-z0-9_-]/i', '', $_SESSION['user']['username'] ?? 'user');
-    
-    $foto_tersimpan = false;
+
+    $safeUsername = preg_replace('/[^a-z0-9_-]/i', '', $username);
+    $photoSaved   = false;
+    $newPhotoPath = $_SESSION['user']['photo'] ?? '';
 
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === 0) {
-        $file = $_FILES['foto'];
-        $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $new_filename = 'foto_' . $username . '_' . time() . '.' . $ext;
-        $destination  = $uploads_dir . '/' . $new_filename;
+        $file        = $_FILES['foto'];
+        $ext         = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $newFilename = 'photo_' . $safeUsername . '_' . time() . '.' . $ext;
+        $destination = $uploadsDir . '/' . $newFilename;
 
         if (move_uploaded_file($file['tmp_name'], $destination)) {
-            $foto_tersimpan = true;
-            $new_photo_path = 'uploads/' . $new_filename;
+            $photoSaved   = true;
+            $newPhotoPath = 'uploads/' . $newFilename;
         }
-    } 
-    elseif (isset($_SESSION['temp_photo'])) {
-        $content = base64_decode($_SESSION['temp_photo']['content']);
-        $ext     = $_SESSION['temp_photo']['ext'];
-        $new_filename = 'foto_' . $username . '_' . time() . '.' . $ext;
-        $destination  = $uploads_dir . '/' . $new_filename;
+    } elseif (isset($_SESSION['temp_photo']) && !empty($_SESSION['temp_photo']['confirmed'])) {
+        $content     = base64_decode($_SESSION['temp_photo']['content']);
+        $ext         = $_SESSION['temp_photo']['ext'];
+        $newFilename = 'photo_' . $safeUsername . '_' . time() . '.' . $ext;
+        $destination = $uploadsDir . '/' . $newFilename;
 
         if (file_put_contents($destination, $content)) {
-            $foto_tersimpan = true;
-            $new_photo_path = 'uploads/' . $new_filename;
+            $photoSaved   = true;
+            $newPhotoPath = 'uploads/' . $newFilename;
         }
     }
 
-    if ($foto_tersimpan) {
-        $old = $_SESSION['user']['photo'] ?? '';
-        if (!empty($old) && strpos($old, 'http') === false && strpos($old, 'uploads/') === 0) {
-            $old_path = __DIR__ . '/../' . $old;
-            if (file_exists($old_path)) @unlink($old_path);
+    if ($photoSaved) {
+        // Remove the old photo file if stored locally in uploads/
+        $oldPhoto = $_SESSION['user']['photo'] ?? '';
+        if (!empty($oldPhoto) && strpos($oldPhoto, 'http') === false && strpos($oldPhoto, 'uploads/') === 0) {
+            $oldPath = __DIR__ . '/../' . $oldPhoto;
+            if (file_exists($oldPath)) @unlink($oldPath);
         }
-        $_SESSION['user']['photo'] = $new_photo_path;
-        unset($_SESSION['temp_photo']); 
+        $_SESSION['user']['photo'] = $newPhotoPath;
+        unset($_SESSION['temp_photo']);
     }
 
-    $users_file = 'data/users.json';
-    if (file_exists($users_file)) {
-        $users = json_decode(file_get_contents($users_file), true);
-        foreach ($users as $key => $u) {
-            if ($u['username'] === $_SESSION['user']['username']) {
-                $users[$key]['first_name'] = $_SESSION['user']['first_name'];
-                $users[$key]['last_name']  = $_SESSION['user']['last_name'];
-                $users[$key]['email']      = $_SESSION['user']['email'];
-                $users[$key]['contact']    = $_SESSION['user']['contact'];
-                $users[$key]['position']   = $_SESSION['user']['position'];
-                $users[$key]['photo']      = $_SESSION['user']['photo'];
-                break; 
-            }
-        }
-        file_put_contents($users_file, json_encode($users, JSON_PRETTY_PRINT));
-    }
+    // ─── Persist to database ──────────────────────────────
+    $stmt = $conn->prepare(
+        "UPDATE users SET first_name=?, last_name=?, email=?, contact=?, position=?, photo=?
+         WHERE username=?"
+    );
+    $stmt->bind_param(
+        "sssssss",
+        $_SESSION['user']['first_name'],
+        $_SESSION['user']['last_name'],
+        $_SESSION['user']['email'],
+        $_SESSION['user']['contact'],
+        $_SESSION['user']['position'],
+        $_SESSION['user']['photo'],
+        $username
+    );
+    $stmt->execute();
+    $stmt->close();
 
     $message  = 'Your profile has been updated successfully.';
     $msg_type = 'success';
 }
 
+// ─── Prepare display values ──────────────────────────────
 $user = $_SESSION['user'];
 
 $val_first_name = $_POST['first_name'] ?? $user['first_name'] ?? '';
@@ -144,18 +158,16 @@ if (isset($_SESSION['temp_photo']) && !empty($_SESSION['temp_photo']['confirmed'
         $photo_url = $photo_raw;
     } else {
         $photo_path = __DIR__ . '/../' . $photo_raw;
-        $photo_url = file_exists($photo_path) ? '../' . $photo_raw : 'https://i.pravatar.cc/150?img=8';
+        $photo_url  = file_exists($photo_path) ? '../' . $photo_raw : 'https://i.pravatar.cc/150?img=8';
     }
 }
 
 $full_name_display = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile — Taskly</title>
+<?php $pageTitle = 'Profile'; include '../includes/head.php'; ?>
     <link rel="stylesheet" href="../css/main.css?v=<?= time(); ?>">
     <link rel="stylesheet" href="../css/profile.css?v=<?= time(); ?>">
 </head>
@@ -196,7 +208,7 @@ $full_name_display = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'
             <?php endif; ?>
 
             <form action="profile.php" method="POST" enctype="multipart/form-data" class="profile-form">
-                
+
                 <div class="upload-wrap">
                     <label for="foto" class="upload-label">
                         Update your profile
@@ -243,7 +255,7 @@ $full_name_display = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'
 
                 <div class="form-actions">
                     <button type="submit" name="action" value="preview" class="btn btn-outline">
-                        <img class="btn-icon" viewBox="0 0 24 24" src="../assets/camera.svg" >    
+                        <img class="btn-icon" viewBox="0 0 24 24" src="../assets/camera.svg">
                     Preview
                     </button>
                     <button type="submit" name="action" value="update_info" class="btn btn-primary">Update Info</button>

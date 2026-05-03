@@ -1,10 +1,21 @@
 <?php
 session_start();
+require_once __DIR__ . '/includes/connect.php';
+
+if (isset($_COOKIE['taskly_remember'])) {
+    $cookieVal = $_COOKIE['taskly_remember'];
+    if (strpos($cookieVal, ':') !== false) {
+        [$selector] = explode(':', $cookieVal, 2);
+        $stmt = $conn->prepare("DELETE FROM remember_tokens WHERE selector = ?");
+        $stmt->bind_param("s", $selector);
+        $stmt->execute();
+        $stmt->close();
+    }
+    setcookie('taskly_remember', '', time() - 86400, '/', '', false, true);
+}
 
 $_SESSION = [];
 session_unset();
-session_destroy();
-setcookie('taskly_remember', '', time() - 86400, '/');
 
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();

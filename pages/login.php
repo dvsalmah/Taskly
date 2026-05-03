@@ -1,81 +1,158 @@
 <?php
 session_start();
-$users_file = 'data/users.json';
+require_once __DIR__ . '/../includes/connect.php';
 
-//cek cookie remember
+function getUserByUsername(mysqli $conn, string $username): ?array {
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? LIMIT 1");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return $row ?: null;
+}
+
+function buildSessionUser(array $u): array {
+    return [
+        'id'         => $u['id'],
+        'first_name' => $u['first_name'],
+        'last_name'  => $u['last_name'],
+        'username'   => $u['username'],
+        'email'      => $u['email'],
+        'contact'    => $u['contact']  ?? '',
+        'position'   => $u['position'] ?? '',
+        'photo'      => $u['photo']    ?? '',
+    ];
+}
+
+function issueRememberToken(mysqli $conn, int $userId): string {
+    $selector  = bin2hex(random_bytes(7));         
+    $validator = bin2hex(random_bytes(32));         
+    $hash      = password_hash($validator, PASSWORD_DEFAULT);
+    $expiry    = date('Y-m-d H:i:s', strtotime('+30 days'));
+
+    $del = $conn->prepare("DELETE FROM remember_tokens WHERE user_id = ?");
+    $del->bind_param("i", $userId);
+    $del->execute();
+    $del->close();
+    $ins = $conn->prepare(
+        "INSERT INTO remember_tokens (user_id, selector, validator_hash, esxpires_at, created_ar)
+         VALUES (?, ?, ?, ?, NOW())"
+    );
+    $ins->bind_param("isss", $userId, $selector, $hash, $expiry);
+    $ins->execute();
+    $ins->close();
+
+    return $selector . ':' . $validator;
+}
+
+
+function setRememberCookie(string $cookieVal): void {
+    setcookie(
+        'taskly_remember',
+        $cookieVal,
+        time() + 60 * 60 * 24 * 30,   
+        '/',
+        '',
+        false,   
+        true    
+    );
+}
+
+function clearRememberCookie(): void {
+    setcookie('taskly_remember', '', time() - 86400, '/', '', false, true);
+}
+
 if (!isset($_SESSION['user']) && isset($_COOKIE['taskly_remember'])) {
-    $cookie_user = $_COOKIE['taskly_remember'];
-    
-    if (file_exists($users_file)) {
-        $users = json_decode(file_get_contents($users_file), true) ?? [];
-        foreach ($users as $u) {
-            if ($u['username'] === $cookie_user) {
-                $_SESSION['user'] = [
-                    'first_name' => $u['first_name'],
-                    'last_name'  => $u['last_name'],
-                    'username'   => $u['username'],
-                    'email'      => $u['email'],
-                    'contact'    => $u['contact']  ?? '',
-                    'position'   => $u['position'] ?? '',
-                    'photo'      => $u['photo']    ?? 'https://i.pravatar.cc/150?img=8',
-                ];
-                header('Location: homepage.php');
-                exit;
+    $cookieVal = $_COOKIE['taskly_remember'];
+
+    if (strpos($cookieVal, ':') !== false) {
+        [$selector, $validator] = explode(':', $cookieVal, 2);
+
+        $stmt = $conn->prepare(
+            "SELECT rt.id AS token_id, rt.validator_hash, rt.esxpires_at, rt.user_id,
+                    u.*
+             FROM   remember_tokens rt
+             JOIN   users u ON rt.user_id = u.id
+             WHERE  rt.selector = ?
+             LIMIT  1"
+        );
+        $stmt->bind_param("s", $selector);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        $tokenValid = false;
+
+        if ($row) {
+            if (strtotime($row['esxpires_at']) > time()) {
+                if (password_verify($validator, $row['validator_hash'])) {
+                    $tokenValid = true;
+                }
+            }
+        }
+
+        if ($tokenValid) {
+            $_SESSION['user'] = buildSessionUser($row);
+
+            $delOld = $conn->prepare("DELETE FROM remember_tokens WHERE selector = ?");
+            $delOld->bind_param("s", $selector);
+            $delOld->execute();
+            $delOld->close();
+
+            $userId       = (int)$row['user_id'];
+            $newCookieVal = issueRememberToken($conn, $userId);
+
+            setRememberCookie($newCookieVal);
+
+            header('Location: homepage.php');
+            exit;
+
+        } else {
+            clearRememberCookie();
+            if ($row) {
+                $delStale = $conn->prepare("DELETE FROM remember_tokens WHERE selector = ?");
+                $delStale->bind_param("s", $selector);
+                $delStale->execute();
+                $delStale->close();
             }
         }
     }
 }
 
-//cek login
 if (isset($_SESSION['user'])) {
     header('Location: homepage.php');
     exit;
 }
-
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $username   = trim($_POST['username'] ?? '');
+    $password   = $_POST['password'] ?? '';
+    $rememberMe = isset($_POST['remember']);
 
-    $users_file = 'data/users.json';
-    $users = [];
+    $user = getUserByUsername($conn, $username);
 
-    if (file_exists($users_file)) {
-        $users = json_decode(file_get_contents($users_file), true) ?? [];
-    }
+    if ($user && password_verify($password, $user['password'])) {
+        $_SESSION['user'] = buildSessionUser($user);
 
-    $found = false;
-    foreach ($users as $user) {
-        if ($user['username'] === $username && password_verify($password, $user['password'])) {
-            $_SESSION['user'] = [
-                'first_name' => $user['first_name'],
-                'last_name'  => $user['last_name'],
-                'username'   => $user['username'],
-                'email'      => $user['email'],
-                'contact'    => $user['contact']  ?? '',
-                'position'   => $user['position'] ?? '',
-                'photo'      => $user['photo']    ?? 'https://i.pravatar.cc/150?img=8',
-            ];
-            $found = true;
-            break;
+        if ($rememberMe) {
+            $userId       = (int)$user['id'];
+            $newCookieVal = issueRememberToken($conn, $userId);
+            setRememberCookie($newCookieVal);
         }
-    }
 
-    if ($found) {
         header('Location: homepage.php');
         exit;
+
     } else {
-        $error = 'Username atau password salah.';
+        $error = 'Incorrect username or password. Please try again.';
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — Taskly</title>
+<?php $pageTitle = 'Sign In'; include '../includes/head.php'; ?>
     <link rel="stylesheet" href="../css/auth.css">
 </head>
 <body>
@@ -93,20 +170,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <form action="login.php" method="POST" class="auth-form">
                 <div class="input-group">
-                    <img class="input-icon" viewBox="0 0 24 24" src="../assets/user.svg">
+                    <img class="input-icon" src="../assets/user.svg" alt="">
                     <input type="text" name="username" placeholder="Enter Username" required autocomplete="username">
                 </div>
 
                 <div class="input-group">
-                <img class="input-icon" viewBox="0 0 24 24" src="../assets/password.svg">
-                <input type="password" name="password" placeholder="Enter Password" required autocomplete="current-password">
+                    <img class="input-icon" src="../assets/password.svg" alt="">
+                    <input type="password" name="password" placeholder="Enter Password" required autocomplete="current-password">
                 </div>
 
                 <label class="checkbox-label">
-                    <input type="checkbox" name="remember"> Remember me
+                    <input type="checkbox" name="remember"> Keep me signed in
                 </label>
 
-                <button type="submit" class="btn-auth">Login</button>
+                <button type="submit" class="btn-auth">Sign In</button>
 
                 <p class="auth-switch">
                     Don't have an account? <a href="register.php">Register here</a>
