@@ -106,7 +106,7 @@
 .badge-completed   { background: #E8F5E9; color: #2E7D32; }
 .badge-progress    { background: #E3F2FD; color: #1565C0; }
 .badge-notstarted  { background: #F5F5F5; color: #757575; }
-.badge-vital       { background: #FFF3E0; color: #E65100; }
+.badge-vital       { background: #ffd3d3; color: #ff0000; }
 
 .badge-priority-high   { background: #FFEBEE; color: #C62828; }
 .badge-priority-medium { background: #FFF8E1; color: #F57F17; }
@@ -136,7 +136,7 @@
     box-shadow: 0 6px 24px rgba(0,0,0,0.12);
     transform: translateY(-3px);
 }
-.task-card.vital       { border-top-color: #FF6F00; }
+.task-card.vital       { border-top-color: #ff0000; }
 .task-card.completed   { border-top-color: #2E7D32; opacity: 0.78; }
 .task-card.in_progress { border-top-color: #1565C0; }
 .task-card.not_started { border-top-color: var(--border); }
@@ -205,8 +205,12 @@
     background: #F5F5F5;
     padding: 2px 8px;
     border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
-.task-deadline.urgent { background: #FFF3E0; color: #E65100; }
+.task-deadline.urgent { background: #FFd3d3; color: #ff0000; }
 
 .task-date { font-size: 11px; color: var(--text-muted); }
 
@@ -222,7 +226,7 @@
     border-left: 4px solid var(--border);
     padding: 16px 20px;
 }
-.task-list .task-card.vital      { border-left-color: #FF6F00; }
+.task-list .task-card.vital      { border-left-color: #ff0000; }
 .task-list .task-card.completed  { border-left-color: #2E7D32; }
 .task-list .task-card.in_progress{ border-left-color: #1565C0; }
 
@@ -252,7 +256,7 @@
     cursor: pointer;
     color: var(--text);
     transition: border-color 0.2s;
-    height: 32px;           /* matches btn-sm height */
+    height: 32px;          
     line-height: 30px;
 }
 .status-select:focus { outline: none; border-color: var(--pink-dark); }
@@ -476,7 +480,7 @@
     width: 32px;
     height: 32px;
     margin-bottom: 14px;
-    filter: brightness(0);  /* render as black */
+    filter: brightness(0); 
     opacity: 0.8;
 }
 .help-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
