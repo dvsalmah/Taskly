@@ -104,7 +104,9 @@ if (!isset($_SESSION['user'])) { header('Location: ../login.php'); exit; }
                         <li>Priority is set to <strong>High</strong></li>
                         <li>Deadline is within the next <strong>48 hours</strong></li>
                     </ul>
-                    You don't need to do anything manually — vital tasks appear on the <strong>Vital Task</strong> page automatically and are marked with a 🔥 badge on the card.
+                    You don't need to do anything manually — vital tasks appear on the <strong>Vital Task</strong> page automatically and are marked with a
+                    <img src="../assets/fire.svg" alt="vital" class="vital-icon">
+                     badge on the card.
                 </div>
             </div>
 

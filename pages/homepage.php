@@ -67,7 +67,7 @@ $done_tasks = array_slice(array_values($done_tasks), 0, 5);
                             ?>
                             <div class="task" style="border-left-color:<?= $borderColor ?>">
                                 <h4>
-                                    <?php if ($isVital): ?><span style="color:#FF6F00">🔥 </span><?php endif; ?>
+                                    <?php if ($isVital): ?><img src="../assets/fire.svg" alt="vital" class="vital-icon"><?php endif; ?>
                                     <?= htmlspecialchars($t['title']) ?>
                                 </h4>
                                 <?php if ($t['description']): ?>
