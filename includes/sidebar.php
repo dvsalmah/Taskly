@@ -8,7 +8,7 @@ $current = basename($_SERVER['PHP_SELF']);
         <a href="homepage.php" class="nav-item <?= $current === 'homepage.php' ? 'active' : '' ?>">
             <span class="side-icon">
                 <img src="../assets/homepage.svg" alt="">
-            </span> Dashboard
+            </span> Homepage
         </a>
         <a href="vital-task.php" class="nav-item <?= $current === 'vital-task.php' ? 'active' : '' ?>">
             <span class="side-icon">

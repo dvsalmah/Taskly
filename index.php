@@ -1,15 +1,13 @@
 <?php
     $appName = "Taskly";
-    $pageTitle = "Welcome to " . $appName;
+    $pageTitle = $appName;
     $heroSubtitle = "Kickstart your productivity journey. Keep track of your tasks, plan your schedule, and get things done—easier than ever.";
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
-    <title><?= $pageTitle; ?></title> <link rel="stylesheet" href="css/style.css">
+<?php $pageTitle = ''; include 'includes/head.php'; ?>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
