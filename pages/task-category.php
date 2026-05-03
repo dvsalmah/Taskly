@@ -75,7 +75,10 @@ $presets = ['#EC003F','#FF6F00','#F9A825','#2E7D32','#1565C0','#6A1B9A','#00838F
                 <h1>Task Categories</h1>
                 <p><?= count($categories) ?> categor<?= count($categories) !== 1 ? 'ies' : 'y' ?></p>
             </div>
-            <button class="btn btn-primary" id="openCatModal">＋ Add Category</button>
+            <button class="btn btn-primary" id="openCatModal">
+                <img src="../assets/add.png" alt="Add Category" class="icon" width="15px" height="15px">
+                Add Category
+            </button>
         </div>
 
         <?php if ($message): ?>
@@ -89,7 +92,6 @@ $presets = ['#EC003F','#FF6F00','#F9A825','#2E7D32','#1565C0','#6A1B9A','#00838F
 
         <?php if (empty($categories)): ?>
             <div class="empty-state">
-                <div class="empty-icon">🏷️</div>
                 <h3>No categories yet</h3>
                 <p>Create categories to organise your tasks by topic, project, or priority.</p>
             </div>
